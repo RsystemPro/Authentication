@@ -1,0 +1,23 @@
+.page {
+  display: grid;
+  gap: 20px;
+  max-width: 850px;
+  margin-inline: auto;
+}
+.session {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 20px;
+  border-block-end: 1px solid var(--app-border);
+}
+.device {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.actions {
+  margin-block-start: 20px;
+}

@@ -1,0 +1,149 @@
+.shell {
+  min-height: 100dvh;
+  flex-direction: row;
+}
+
+.sidebar {
+  position: sticky;
+  inset-block-start: 0;
+  display: flex;
+  flex: 0 0 256px;
+  flex-direction: column;
+  gap: 36px;
+  height: 100dvh;
+  padding: 32px 20px;
+  border-inline-end: 1px solid var(--app-border);
+  background: var(--app-surface);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: 8px;
+  color: var(--app-text);
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.brand small {
+  display: block;
+  margin-block-start: 4px;
+  color: var(--app-muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.logo {
+  display: grid;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  background: #635bff;
+  color: #fff;
+}
+
+.navigation {
+  display: grid;
+  gap: 8px;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 10px;
+  color: var(--app-muted);
+  font-size: 14px;
+}
+
+.navLink:hover,
+.active {
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+}
+
+.active {
+  font-weight: 600;
+}
+
+.sidebarNote {
+  display: grid;
+  gap: 12px;
+  margin-block-start: auto;
+  padding: 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+}
+
+.noteMark {
+  color: var(--app-primary);
+  font-size: 30px;
+}
+
+.main {
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  min-height: 88px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px clamp(20px, 4vw, 56px);
+  border-block-end: 1px solid var(--app-border);
+}
+
+.content {
+  width: 100%;
+  max-width: 1280px;
+  flex: 1;
+  align-self: center;
+  padding: 44px clamp(20px, 4vw, 56px);
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: var(--app-muted);
+  font-size: 11px;
+}
+
+@media (max-width: 760px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    flex: 0 0 auto;
+    gap: 20px;
+    padding: 20px;
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--app-border);
+  }
+
+  .navigation {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sidebarNote {
+    display: none;
+  }
+
+  .header {
+    flex-wrap: wrap;
+    min-height: auto;
+  }
+
+  .content {
+    padding-block: 28px;
+  }
+}

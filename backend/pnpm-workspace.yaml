@@ -1,0 +1,12 @@
+allowBuilds:
+  '@scarf/scarf': false
+  argon2: true
+  esbuild: true
+  '@prisma/engines': false
+  prisma: false
+
+# Temporary security patches while upstream packages pin the affected versions.
+# GHSA-27r3-jxmh-p828 and GHSA-q7qp-rjg7-q26m.
+overrides:
+  'express>body-parser': 2.4.0
+  '@nestjs/platform-express>multer': 2.5.0

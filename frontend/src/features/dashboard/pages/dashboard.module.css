@@ -1,0 +1,142 @@
+.page {
+  display: grid;
+  gap: 32px;
+}
+
+.hero {
+  display: flex;
+  min-height: 280px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 48px);
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: var(--app-primary-soft);
+}
+
+.heroContent {
+  max-width: 580px;
+}
+
+.heroContent h1 {
+  margin-block: 18px 16px;
+  font-size: clamp(27px, 3vw, 40px);
+  line-height: 1.5;
+  letter-spacing: -0.6px;
+}
+
+.heroContent p {
+  max-width: 430px;
+  margin-block-end: 24px;
+  color: var(--app-muted);
+  line-height: 1.9;
+}
+
+.eyebrow {
+  color: var(--app-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.art {
+  position: relative;
+  flex: 0 0 180px;
+  height: 180px;
+}
+
+.artSheet {
+  position: absolute;
+  inset: 16px 24px;
+  display: grid;
+  place-items: center;
+  transform: rotate(-12deg);
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: var(--app-surface);
+  box-shadow: 12px 12px 0 var(--app-border);
+  color: var(--app-primary);
+}
+
+.artSpark {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  color: var(--app-primary);
+}
+
+.artDot {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f1c478;
+}
+
+.highlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.highlight h3 {
+  margin-block: 18px 10px;
+  font-size: 16px;
+}
+
+.highlight p {
+  margin: 0;
+  line-height: 1.9;
+}
+
+.icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.purple {
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+}
+
+.green {
+  background: var(--app-green-soft);
+  color: var(--app-green);
+}
+
+.orange {
+  background: var(--app-orange-soft);
+  color: var(--app-orange);
+}
+
+.rooms {
+  padding-block: 30px;
+}
+
+.emptyText {
+  max-width: 430px;
+  margin-inline: auto;
+}
+
+.emptyText p {
+  line-height: 1.9;
+}
+
+@media (max-width: 1000px) {
+  .art {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .highlights {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,13 @@
+model AuthOneTimeToken {
+  id         String           @id @default(uuid()) @db.Uuid
+  userId     String           @db.Uuid
+  purpose    AuthTokenPurpose
+  tokenHash  String           @unique @db.Char(64)
+  createdAt  DateTime         @default(now()) @db.Timestamptz(3)
+  expiresAt  DateTime         @db.Timestamptz(3)
+  consumedAt DateTime?        @db.Timestamptz(3)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, consumedAt])
+  @@index([expiresAt])
+}

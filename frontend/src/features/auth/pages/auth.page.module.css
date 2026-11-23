@@ -1,0 +1,33 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+.card {
+  width: min(100%, 440px);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--app-primary);
+  font-size: 22px;
+  font-weight: 700;
+  margin-block-end: 24px;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 20px;
+  margin-block-start: 24px;
+}
+.notice {
+  margin-block: 16px;
+}
+.language {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-end: 16px;
+}

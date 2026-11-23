@@ -1,0 +1,564 @@
+tags:
+  - name: Authentication
+    description: |
+      All responses use Cache-Control no-store and Pragma no-cache.
+      POST/DELETE require an Origin allowed by CORS_ORIGINS and X-CSRF-Protection: 1.
+      Browser Fetch Metadata must also pass the existing CSRF guard.
+      To use Try it out from /docs, add this backend's exact origin to CORS_ORIGINS.
+      Browsers set Origin automatically; non-browser clients must send it explicitly.
+      Login/refresh set an HttpOnly refresh cookie, never a refresh token in JSON.
+      Swagger UI sends browser-managed cookies; do not paste refresh tokens into Authorize.
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_register
+      summary: Register an account and request email verification
+      description: Email is trimmed and lowercased. Duplicate accounts receive the same generic response. New passwords are screened for compromise.
+      security: []
+      parameters: &csrfParameters
+        - $ref: '#/components/parameters/CsrfProtection'
+        - $ref: '#/components/parameters/TrustedOrigin'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/RecoveryAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/verify-email:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_verifyEmail
+      summary: Consume a single-use email verification token
+      security: []
+      parameters: *csrfParameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses: &tokenResponses
+        '204':
+          $ref: '#/components/responses/AuthNoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/resend-verification:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_resendVerification
+      summary: Request another verification email
+      description: Always returns the generic response without revealing account existence or eligibility.
+      security: []
+      parameters: *csrfParameters
+      requestBody: &emailBody
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRequest'
+      responses: &emailResponses
+        '202':
+          $ref: '#/components/responses/RecoveryAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/login:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_login
+      summary: Sign in and create a device session
+      description: Requires an active account with verified email. Returns an access JWT and sets the HttpOnly refresh cookie.
+      security: []
+      parameters: *csrfParameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthCredentials'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_refresh
+      summary: Rotate the refresh cookie and issue an access token
+      description: No JSON body is required. Reusing a consumed refresh token revokes the session. Invalid refresh credentials clear the cookie.
+      security:
+        - refreshCookie: []
+        - refreshCookieDev: []
+      parameters: *csrfParameters
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthCredentials'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_logout
+      summary: Revoke the current device session and clear its refresh cookie
+      description: Idempotent. Accepts an optional refresh cookie, requires no access token or JSON body, and succeeds even when the cookie is missing or invalid.
+      security:
+        - {}
+        - refreshCookie: []
+        - refreshCookieDev: []
+      parameters: *csrfParameters
+      responses:
+        '204':
+          $ref: '#/components/responses/AuthCookieCleared'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/logout-all:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_logoutAll
+      summary: Revoke all of the current user's sessions
+      security: &bearerSecurity
+        - bearerAuth: []
+      parameters: *csrfParameters
+      responses: &protectedMutationResponses
+        '204':
+          $ref: '#/components/responses/AuthCookieCleared'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/me:
+    get:
+      tags: [Authentication]
+      operationId: AuthController_me
+      summary: Get the current public user profile
+      security: *bearerSecurity
+      responses:
+        '200':
+          description: Public user profile
+          headers: &authHeaders
+            Cache-Control:
+              $ref: '#/components/headers/AuthCacheControl'
+            Pragma:
+              $ref: '#/components/headers/AuthPragma'
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/sessions:
+    get:
+      tags: [Authentication]
+      operationId: AuthController_listSessions
+      summary: List the current user's active device sessions
+      description: Ordered by creation time descending and ID ascending. Pass nextCursor to retrieve the next page; cursors must belong to the caller.
+      security: *bearerSecurity
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: UUID v4 returned in nextCursor
+      responses:
+        '200':
+          description: Cursor-paginated active sessions
+          headers: *authHeaders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/sessions/{id}:
+    delete:
+      tags: [Authentication]
+      operationId: AuthController_revokeSession
+      summary: Revoke an owned session
+      description: Clears the refresh cookie if the selected session is the caller's current session.
+      security: *bearerSecurity
+      parameters:
+        - $ref: '#/components/parameters/CsrfProtection'
+        - $ref: '#/components/parameters/TrustedOrigin'
+        - name: id
+          in: path
+          required: true
+          description: Owned session UUID v4
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          $ref: '#/components/responses/AuthCookieCleared'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /auth/change-password:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_changePassword
+      summary: Change the password and revoke all sessions
+      description: Verifies the current password, screens the new password, revokes every session and clears the refresh cookie. Sign in again afterward.
+      security: *bearerSecurity
+      parameters: *csrfParameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        <<: *protectedMutationResponses
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /auth/forgot-password:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_forgotPassword
+      summary: Request a password recovery email
+      description: Always returns the generic response without revealing account existence or eligibility.
+      security: []
+      parameters: *csrfParameters
+      requestBody: *emailBody
+      responses: *emailResponses
+  /auth/reset-password:
+    post:
+      tags: [Authentication]
+      operationId: AuthController_resetPassword
+      summary: Reset a password using a single-use recovery token
+      description: Screens the new password, consumes the token, revokes all sessions and clears the refresh cookie.
+      security: []
+      parameters: *csrfParameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        <<: *tokenResponses
+        '204':
+          $ref: '#/components/responses/AuthCookieCleared'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Short-lived accessToken returned by login/refresh
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-refresh
+      description: HttpOnly cookie when AUTH_COOKIE_SECURE=true (production default); managed by the browser
+    refreshCookieDev:
+      type: apiKey
+      in: cookie
+      name: refresh_dev
+      description: HttpOnly cookie when AUTH_COOKIE_SECURE=false (HTTP development default); managed by the browser
+  parameters:
+    CsrfProtection:
+      name: X-CSRF-Protection
+      in: header
+      required: true
+      schema:
+        type: string
+        enum: ['1']
+        default: '1'
+    TrustedOrigin:
+      name: Origin
+      in: header
+      required: true
+      description: Must exactly match a CORS_ORIGINS entry. Browsers set this automatically; /docs mutations require the backend origin in that allowlist.
+      schema:
+        type: string
+        format: uri
+      example: http://localhost:5173
+  headers:
+    AuthCacheControl:
+      schema:
+        type: string
+        enum: [no-store]
+    AuthPragma:
+      schema:
+        type: string
+        enum: [no-cache]
+    RefreshSetCookie:
+      description: Sets/rotates an HttpOnly refresh cookie (Secure according to config, SameSite=lax by default, Path=/, Expires at session idle expiry)
+      schema:
+        type: string
+    ClearRefreshCookie:
+      description: Expires the configured refresh cookie; present only when the endpoint clears the current device cookie
+      schema:
+        type: string
+  schemas:
+    EmailRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email: &email
+          type: string
+          format: email
+          maxLength: 254
+          description: Trimmed and lowercased before validation
+          example: person@example.com
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: *email
+        password: &newPassword
+          type: string
+          format: password
+          writeOnly: true
+          minLength: 15
+          maxLength: 128
+          description: Not trimmed or truncated; must pass compromised-password screening
+          example: a distinctive long passphrase
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: *email
+        password: &currentPassword
+          type: string
+          format: password
+          writeOnly: true
+          minLength: 1
+          maxLength: 128
+    TokenRequest:
+      type: object
+      additionalProperties: false
+      required: [token]
+      properties:
+        token: &token
+          type: string
+          writeOnly: true
+          pattern: '^[A-Za-z0-9_-]{43}$'
+          minLength: 43
+          maxLength: 43
+          description: Single-use token from the verification/recovery email
+    ResetPasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [token, newPassword]
+      properties:
+        token: *token
+        newPassword: *newPassword
+    ChangePasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: *currentPassword
+        newPassword: *newPassword
+    RecoveryMessage:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: If this address is eligible, instructions will be sent.
+    PublicUser:
+      type: object
+      required: [id, email, emailVerifiedAt, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        emailVerifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    Credentials:
+      type: object
+      required: [accessToken, expiresIn, user]
+      properties:
+        accessToken:
+          type: string
+          description: Signed JWT; use as Authorization Bearer on protected endpoints
+        expiresIn:
+          type: integer
+          description: Access token lifetime in seconds
+          example: 600
+        user:
+          $ref: '#/components/schemas/PublicUser'
+    Session:
+      type: object
+      required:
+        [
+          id,
+          createdAt,
+          lastUsedAt,
+          idleExpiresAt,
+          absoluteExpiresAt,
+          userAgent,
+          ipAddress,
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+          description: Advances on refresh rather than every access request
+        idleExpiresAt:
+          type: string
+          format: date-time
+        absoluteExpiresAt:
+          type: string
+          format: date-time
+        userAgent:
+          type: string
+          nullable: true
+          maxLength: 256
+        ipAddress:
+          type: string
+          nullable: true
+          maxLength: 64
+    SessionPage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Session'
+        nextCursor:
+          type: string
+          format: uuid
+          nullable: true
+  responses:
+    RecoveryAccepted:
+      description: Generic registration/recovery response; does not disclose eligibility
+      headers: *authHeaders
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RecoveryMessage'
+    AuthNoContent:
+      description: Completed successfully; no response body
+      headers: *authHeaders
+    AuthCookieCleared:
+      description: Completed successfully; no response body. Clears the refresh cookie when applicable.
+      headers:
+        <<: *authHeaders
+        Set-Cookie:
+          $ref: '#/components/headers/ClearRefreshCookie'
+    AuthCredentials:
+      description: Access credentials and public user; refresh token is only in the HttpOnly cookie
+      headers:
+        <<: *authHeaders
+        Set-Cookie:
+          $ref: '#/components/headers/RefreshSetCookie'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Credentials'

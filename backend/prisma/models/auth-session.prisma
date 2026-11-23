@@ -1,0 +1,20 @@
+model AuthSession {
+  id                String              @id @default(uuid()) @db.Uuid
+  userId            String              @db.Uuid
+  createdAt         DateTime            @default(now()) @db.Timestamptz(3)
+  lastUsedAt        DateTime            @default(now()) @db.Timestamptz(3)
+  idleExpiresAt     DateTime            @db.Timestamptz(3)
+  absoluteExpiresAt DateTime            @db.Timestamptz(3)
+  revokedAt         DateTime?           @db.Timestamptz(3)
+  revocationReason  String?             @db.VarChar(64)
+  userAgent         String?             @db.VarChar(256)
+  ipAddress         String?             @db.VarChar(64)
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens     RefreshToken[]
+  securityEvents    AuthSecurityEvent[]
+
+  @@index([userId, revokedAt, absoluteExpiresAt])
+  @@index([idleExpiresAt])
+  @@index([absoluteExpiresAt])
+  @@index([revokedAt])
+}

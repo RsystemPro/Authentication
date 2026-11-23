@@ -1,0 +1,3 @@
+# MSW's optional postinstall notice is not needed for Node-based tests.
+allowBuilds:
+  msw: false

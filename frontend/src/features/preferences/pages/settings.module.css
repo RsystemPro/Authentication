@@ -1,0 +1,24 @@
+.page {
+  display: grid;
+  max-width: 760px;
+  gap: 20px;
+}
+
+.page h1,
+.page p {
+  margin: 0;
+}
+
+.page p {
+  margin-block-end: 8px;
+  line-height: 1.9;
+}
+
+.page h1 {
+  font-size: clamp(24px, 3vw, 34px);
+}
+
+.field {
+  display: grid;
+  gap: 14px;
+}

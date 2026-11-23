@@ -1,0 +1,17 @@
+AI
+AGENTS.md
+
+# Local secrets and environment files
+# .env
+# .env.*
+!.env.example
+
+# Dependencies, generated code, and build/test output
+node_modules/
+backend/generated/
+backend/src/generated/prisma/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
